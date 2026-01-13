@@ -1,0 +1,26 @@
+export const DEFAULTS = {
+  buildingHeight: 50,
+  roadY: 0.12,
+  roadWidths: {
+    motorway: 15,
+    trunk: 12,
+    primary: 10,
+    secondary: 8,
+    tertiary: 6,
+    residential: 5,
+    service: 3,
+    path: 2,
+    footway: 1.5,
+  },
+  roadColors: {
+    motorway: 0xe892a2,
+    trunk: 0xf9b29c,
+    primary: 0xfcd6a4,
+    secondary: 0xf7fabf,
+    tertiary: 0xffffff,
+    residential: 0xffffff,
+    service: 0xffffff,
+    path: 0xc5b3a0,
+    footway: 0xc5b3a0,
+  },
+};
