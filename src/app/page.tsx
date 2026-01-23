@@ -1,4 +1,4 @@
-import MapInterface from "@/components/MapInterface";
+import MapInterface from "@/components/ui/map/MapInterface";
 
 export default function Home() {
   return (

@@ -7,10 +7,9 @@ The application is responsible for user interaction, UI rendering, and communica
 ## Stack
 
 - Next.js
-- React
-- TypeScript
+- TypeScript and JavaScript
 - Tailwind CSS
-- Fetch API
+- Three.js
 
 ## Functionality
 
