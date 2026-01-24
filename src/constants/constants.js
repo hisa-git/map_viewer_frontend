@@ -45,6 +45,16 @@ export const WEATHER_CONFIG = {
   ELEVATION: 0.2,
   OPACITY: 0.5,
   STEP: 0.05,
+  SPRITE: {
+    SCALE: 8,
+    WIDTH: 256,
+    HEIGHT: 128,
+    FONT_SIZE: 28,
+    FONT_FAMILY: "monospace",
+    LINE_WIDTH: 4,
+    SPRITE_SCALE: { x: 180, y: 90, z: 1 },
+    Y_OFFSET: 200,
+  },
 };
 
 export const GROUND_CONFIG = {
@@ -60,6 +70,8 @@ export const COLOR_PALETTES = {
     buildings: 0xa8b0b8,
     roads: 0x909090,
     water: 0x6b9db0,
+    labelText: "rgba(0,0,0,0.95)",
+    labelStroke: "white",
   },
   dark: {
     background: 0x0a0c12,
@@ -67,6 +79,8 @@ export const COLOR_PALETTES = {
     buildings: 0x2c3240,
     roads: 0x383e4c,
     water: 0x2a3d52,
+    labelText: "rgba(255,255,255,0.95)",
+    labelStroke: "black",
   },
 };
 

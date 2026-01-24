@@ -175,20 +175,25 @@ export default function ThreeScene({ settings = {} }) {
         const manager = weatherLabelManagerRef.current;
         if (!manager) return;
 
-        if (!settingsRef.current.temperature && !settingsRef.current.humidity) {
+        const settings = settingsRef.current;
+        const enabledTemperature = settings.temperature;
+        const enabledHumidity = settings.humidity;
+        if (!enabledTemperature && !enabledHumidity) {
           manager.clear();
           return;
         }
-
-        const mode = settingsRef.current.temperature
-          ? "temperature"
-          : "humidity";
-        manager.setMode(mode);
-        manager.render(points);
-
-        if (rendererRef.current && cameraRef.current && sceneRef.current) {
-          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        if (enabledTemperature) {
+          manager.render(points, "temperature");
+        } else {
+          manager.clear("temperature");
         }
+        if (enabledHumidity) {
+          manager.render(points, "humidity");
+        } else {
+          manager.clear("humidity");
+        }
+
+        rendererRef.current?.render(sceneRef.current, cameraRef.current);
       },
     });
 
@@ -392,17 +397,29 @@ export default function ThreeScene({ settings = {} }) {
       return;
     }
 
-    const enabled = settings.temperature || settings.humidity;
+    const enabledTemperature = settings.temperature;
+    const enabledHumidity = settings.humidity;
 
-    if (!enabled) {
+    if (!enabledTemperature && !enabledHumidity) {
       console.log("[ThreeScene] Weather disabled, clearing");
       weatherLoader.clearAll();
       manager.clear();
     } else {
-      const mode = settings.temperature ? "temperature" : "humidity";
-      console.log("[ThreeScene] Weather enabled, mode:", mode);
-      weatherLoader.setMode(mode);
-      manager.setMode(mode);
+      console.log("[ThreeScene] Weather enabled");
+
+      if (enabledTemperature) {
+        weatherLoader.setMode("temperature");
+        manager.render(weatherLoader.points, "temperature");
+      } else {
+        manager.clear("temperature");
+      }
+
+      if (enabledHumidity) {
+        weatherLoader.setMode("humidity");
+        manager.render(weatherLoader.points, "humidity");
+      } else {
+        manager.clear("humidity");
+      }
 
       setTimeout(() => {
         if (controls) {

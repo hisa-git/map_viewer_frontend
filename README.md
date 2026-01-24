@@ -23,6 +23,14 @@ The codebase follows a standard Next.js layout with separated pages, UI componen
 
 ## Running
 
+Fill the .env.local in the root folder with
+
+```
+NEXT_PUBLIC_STARTLON = 30.123456
+NEXT_PUBLIC_STARTLAT = 40.123456
+NEXT_PUBLIC_API_BASE = http://example.com
+```
+
 Install dependencies and start the development server:
 
 ```bash

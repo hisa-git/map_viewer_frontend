@@ -14,7 +14,7 @@ export class WeatherRenderer {
     this.maxTemp = opts.maxTemp ?? 40;
     this.minHumidity = opts.minHumidity ?? 0;
     this.maxHumidity = opts.maxHumidity ?? 100;
-    this.opacity = opts.opacity ?? 0.5;
+    this.opacity = opts.opacity ?? 0.25;
 
     console.log("[WeatherRenderer] Created:", {
       mode: this.mode,
@@ -116,7 +116,7 @@ export function createWeatherLoader(scene, options) {
     mode: initialMode = "temperature",
     step = 0.05,
     elevationAboveGround = 20,
-    opacity = 0.5,
+    opacity = 0.25,
     onProgress,
     onDataLoaded,
   } = options;
