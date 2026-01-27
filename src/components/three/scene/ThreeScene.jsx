@@ -176,19 +176,32 @@ export default function ThreeScene({ settings = {} }) {
         if (!manager) return;
 
         const settings = settingsRef.current;
-        const enabledTemperature = settings.temperature;
-        const enabledHumidity = settings.humidity;
-        if (!enabledTemperature && !enabledHumidity) {
-          manager.clear();
-          return;
-        }
-        if (enabledTemperature) {
-          manager.render(points, "temperature");
+
+        if (settings.temperature) {
+          manager.render({
+            id: "temperature",
+            meshes: points,
+            getValue: (mesh) => mesh.userData.temperature,
+            format: (value) =>
+              typeof value === "number" && isFinite(value)
+                ? `${value.toFixed(1)}°C`
+                : "–°C",
+          });
         } else {
           manager.clear("temperature");
         }
-        if (enabledHumidity) {
-          manager.render(points, "humidity");
+
+        if (settings.humidity) {
+          manager.render({
+            id: "humidity",
+            meshes: points,
+            getValue: (mesh) => mesh.userData.humidity,
+            format: (value) => {
+              if (value === null || value === undefined || isNaN(value))
+                return "-%";
+              return `${Math.round(value)}%`;
+            },
+          });
         } else {
           manager.clear("humidity");
         }
@@ -390,46 +403,30 @@ export default function ThreeScene({ settings = {} }) {
     const weatherLoader = loadersRef.current.get("weather");
     const controls = controlsRef.current;
 
-    if (!manager || !weatherLoader) {
-      console.log(
-        "[ThreeScene] Weather useEffect - manager or loader not ready",
-      );
-      return;
-    }
+    if (!manager || !weatherLoader) return;
 
     const enabledTemperature = settings.temperature;
     const enabledHumidity = settings.humidity;
 
     if (!enabledTemperature && !enabledHumidity) {
-      console.log("[ThreeScene] Weather disabled, clearing");
       weatherLoader.clearAll();
       manager.clear();
-    } else {
-      console.log("[ThreeScene] Weather enabled");
-
-      if (enabledTemperature) {
-        weatherLoader.setMode("temperature");
-        manager.render(weatherLoader.points, "temperature");
-      } else {
-        manager.clear("temperature");
-      }
-
-      if (enabledHumidity) {
-        weatherLoader.setMode("humidity");
-        manager.render(weatherLoader.points, "humidity");
-      } else {
-        manager.clear("humidity");
-      }
-
-      setTimeout(() => {
-        if (controls) {
-          console.log(
-            "[ThreeScene] Dispatching controls change to trigger weather load",
-          );
-          controls.dispatchEvent({ type: "change" });
-        }
-      }, 100);
+      return;
     }
+
+    if (enabledTemperature) {
+      weatherLoader.setMode("temperature");
+    } else {
+      manager.clear("temperature");
+    }
+
+    if (enabledHumidity) {
+      weatherLoader.setMode("humidity");
+    } else {
+      manager.clear("humidity");
+    }
+
+    controls?.dispatchEvent({ type: "change" });
   }, [settings.temperature, settings.humidity]);
 
   return (

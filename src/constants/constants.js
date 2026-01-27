@@ -13,9 +13,9 @@ export const LIGHTING = {
   },
   NIGHT: {
     skyColor: 0x10121b,
-    dirIntensity: 0.2,
+    dirIntensity: 0.6,
     dirColor: 0xaaaaee,
-    ambIntensity: 0.15,
+    ambIntensity: 0.25,
     ambColor: 0x555577,
   },
 };
@@ -25,14 +25,14 @@ export const DEFAULTS = {
   VIEW_RADIUS: 5,
   CAMERA_FOV: 60,
   CAMERA_HEIGHT: 1200,
-  CAMERA_DISTANCE: 1200,
+  CAMERA_DISTANCE: 1000,
   UPDATE_DEBOUNCE: 250,
   HIDE_BUILDINGS_HEIGHT: 15000,
 };
 
 export const ROAD_VISIBILITY = {
   MAJOR: { types: ["motorway", "trunk", "primary"], distance: Infinity },
-  MINOR: { types: ["footway", "path", "service"], distance: 1000 },
+  MINOR: { types: ["footway", "path", "service"], distance: 5000 },
   DEFAULT: { distance: Infinity },
 };
 
@@ -43,7 +43,7 @@ export const WEATHER_CONFIG = {
   MAX_HUMIDITY: 100,
   TILE_SIZE: 50,
   ELEVATION: 0.2,
-  OPACITY: 0.5,
+  OPACITY: 0.25,
   STEP: 0.05,
   SPRITE: {
     SCALE: 8,
@@ -89,5 +89,5 @@ export const LAYER_OFFSETS = {
   water: 0,
   roads: 1,
   buildings: 5,
-  weather: 10,
+  weather: 65,
 };
