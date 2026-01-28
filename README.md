@@ -1,6 +1,6 @@
 # Client Side of Map viewer Application
 
-This repository contains the client-side part of the MAN project.
+This repository contains the client-side part of the Map Viewer Application.
 
 The application is responsible for user interaction, UI rendering, and communication with the server API. It runs entirely in the browser and acts as a presentation layer between the user and the backend.
 
@@ -15,8 +15,10 @@ The application is responsible for user interaction, UI rendering, and communica
 
 - Page rendering and client-side navigation
 - API communication
-- Form handling and basic validation
-- Responsive layout
+- Interactive map navigation
+- Weather data visualization
+- Visualization of static cartographical data
+- UI state management for map settings
 
 ## Structure
 The codebase follows a standard Next.js layout with separated pages, UI components, and utility logic. State is managed locally without complex external abstractions.
