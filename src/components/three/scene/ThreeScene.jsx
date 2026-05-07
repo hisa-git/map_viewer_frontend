@@ -10,10 +10,15 @@ import { createCamera } from "../objects/Camera";
 import { createScene } from "./Scene";
 import { createControls } from "../objects/Controls";
 import { setupRaycast } from "../objects/Raycast";
-import { createWeatherLoader } from "../render/WeatherRenderer";
+import { createWeatherLoader } from "../render/createWeatherLoader";
 import { createWeatherLabelManager } from "../../ui/map/WeatherLabelManager";
 import { LightingManager } from "./LightingManager";
 import { Ground } from "../objects/Ground";
+
+import {
+  createTemperatureLayer,
+  createHumidityLayer,
+} from "../render/WeatherLayers";
 
 import {
   setLayerVisibility,
@@ -32,6 +37,27 @@ import {
   LAYER_OFFSETS,
 } from "../../../constants/constants";
 
+const WEATHER_LAYER_DEFS = [
+  {
+    id: "temperature",
+    create: () =>
+      createTemperatureLayer({
+        min: WEATHER_CONFIG.MIN_TEMP,
+        max: WEATHER_CONFIG.MAX_TEMP,
+        elevation: LAYER_OFFSETS.weather,
+      }),
+  },
+  {
+    id: "humidity",
+    create: () =>
+      createHumidityLayer({
+        min: WEATHER_CONFIG.MIN_HUMIDITY,
+        max: WEATHER_CONFIG.MAX_HUMIDITY,
+        elevation: LAYER_OFFSETS.weather + 8,
+      }),
+  },
+];
+
 export default function ThreeScene({ settings = {} }) {
   const containerRef = useRef(null);
 
@@ -43,6 +69,7 @@ export default function ThreeScene({ settings = {} }) {
   const groundRef = useRef(null);
 
   const loadersRef = useRef(new Map());
+  const weatherLoadersRef = useRef(new Map());
   const weatherLabelManagerRef = useRef(null);
 
   const frameRef = useRef(null);
@@ -60,7 +87,6 @@ export default function ThreeScene({ settings = {} }) {
     if (!container) return;
 
     const envBase = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
-
     const startLon = Number(process.env.NEXT_PUBLIC_STARTLON || 0);
     const startLat = Number(process.env.NEXT_PUBLIC_STARTLAT || 0);
 
@@ -106,7 +132,6 @@ export default function ThreeScene({ settings = {} }) {
       color: palette.ground,
       yOffset: LAYER_OFFSETS.ground,
     });
-
     ground.addTo(scene);
     groundRef.current = ground;
 
@@ -156,70 +181,38 @@ export default function ThreeScene({ settings = {} }) {
       color: palette.water,
     });
 
-    const weatherLoader = createWeatherLoader(scene, {
-      url: `${envBase}/weather/area`,
-      centerOffset: [centerX, centerZ],
-      mode: settings.temperature
-        ? "temperature"
-        : settings.humidity
-          ? "humidity"
-          : "temperature",
-      minTemp: WEATHER_CONFIG.MIN_TEMP,
-      maxTemp: WEATHER_CONFIG.MAX_TEMP,
-      minHumidity: WEATHER_CONFIG.MIN_HUMIDITY,
-      maxHumidity: WEATHER_CONFIG.MAX_HUMIDITY,
-      step: WEATHER_CONFIG.STEP,
-      elevationAboveGround: LAYER_OFFSETS.weather,
-      opacity: WEATHER_CONFIG.OPACITY,
-      onDataLoaded: (points) => {
-        const manager = weatherLabelManagerRef.current;
-        if (!manager) return;
-
-        const settings = settingsRef.current;
-
-        if (settings.temperature) {
-          manager.render({
-            id: "temperature",
-            meshes: points,
-            getValue: (mesh) => mesh.userData.temperature,
-            format: (value) =>
-              typeof value === "number" && isFinite(value)
-                ? `${value.toFixed(1)}°C`
-                : "–°C",
-          });
-        } else {
-          manager.clear("temperature");
-        }
-
-        if (settings.humidity) {
-          manager.render({
-            id: "humidity",
-            meshes: points,
-            getValue: (mesh) => mesh.userData.humidity,
-            format: (value) => {
-              if (value === null || value === undefined || isNaN(value))
-                return "-%";
-              return `${Math.round(value)}%`;
-            },
-          });
-        } else {
-          manager.clear("humidity");
-        }
-
-        rendererRef.current?.render(sceneRef.current, cameraRef.current);
-      },
-    });
-
     loadersRef.current.set("buildings", buildingsLoader);
     loadersRef.current.set("roads", roadsLoader);
     loadersRef.current.set("water", waterLoader);
-    loadersRef.current.set("weather", weatherLoader);
+
+    for (const { id, create } of WEATHER_LAYER_DEFS) {
+      const layer = create();
+      const loader = createWeatherLoader(scene, {
+        url: `${envBase}/weather/area`,
+        centerOffset: [centerX, centerZ],
+        layer,
+        step: WEATHER_CONFIG.STEP,
+        opacity: WEATHER_CONFIG.OPACITY,
+        onDataLoaded: (meshes) => {
+          const manager = weatherLabelManagerRef.current;
+          if (!manager || !settingsRef.current[id]) return;
+
+          manager.render({
+            id: layer.id,
+            meshes,
+            getValue: (mesh) => layer.getValue(mesh.userData),
+            format: layer.formatLabel,
+          });
+
+          rendererRef.current?.render(sceneRef.current, cameraRef.current);
+        },
+      });
+
+      weatherLoadersRef.current.set(id, loader);
+    }
 
     const updateChunks = async () => {
-      if (isLoadingRef.current) {
-        console.log("[ThreeScene] updateChunks blocked - already loading");
-        return;
-      }
+      if (isLoadingRef.current) return;
       isLoadingRef.current = true;
 
       controllerRef.current?.abort();
@@ -249,13 +242,8 @@ export default function ThreeScene({ settings = {} }) {
           viewRadius,
         );
 
-        const weatherEnabled =
-          currentSettings.temperature || currentSettings.humidity;
-        console.log(
-          "[ThreeScene] Loading",
-          tilesToLoad.length,
-          "tiles. Weather enabled:",
-          weatherEnabled,
+        const enabledWeatherIds = WEATHER_LAYER_DEFS.map(({ id }) => id).filter(
+          (id) => currentSettings[id],
         );
 
         await Promise.all(
@@ -268,7 +256,10 @@ export default function ThreeScene({ settings = {} }) {
                 t.minLat,
                 t.maxLon,
                 t.maxLat,
-                { ...opts, simplify: 2 },
+                {
+                  ...opts,
+                  simplify: 2,
+                },
               ),
               roadsLoader.loadChunk(t.minLon, t.minLat, t.maxLon, t.maxLat, {
                 ...opts,
@@ -283,22 +274,11 @@ export default function ThreeScene({ settings = {} }) {
               ),
             ];
 
-            if (weatherEnabled) {
-              console.log(
-                "[ThreeScene] Adding weather job for tile:",
-                t.minLon,
-                t.minLat,
-                t.maxLon,
-                t.maxLat,
-              );
+            for (const id of enabledWeatherIds) {
               jobs.push(
-                weatherLoader.loadChunk(
-                  t.minLon,
-                  t.minLat,
-                  t.maxLon,
-                  t.maxLat,
-                  opts,
-                ),
+                weatherLoadersRef.current
+                  .get(id)
+                  .loadChunk(t.minLon, t.minLat, t.maxLon, t.maxLat, opts),
               );
             }
 
@@ -310,8 +290,12 @@ export default function ThreeScene({ settings = {} }) {
         cleanupUnusedChunks(roadsLoader, "roads", activeTiles);
         cleanupUnusedChunks(waterLoader, "water", activeTiles);
 
-        if (weatherEnabled) {
-          cleanupUnusedChunks(weatherLoader, "weather", activeTiles);
+        for (const id of enabledWeatherIds) {
+          cleanupUnusedChunks(
+            weatherLoadersRef.current.get(id),
+            `weather_${id}`,
+            activeTiles,
+          );
         }
       } finally {
         isLoadingRef.current = false;
@@ -332,9 +316,7 @@ export default function ThreeScene({ settings = {} }) {
     const loop = () => {
       lighting.updateDirectionalLight(camera.position);
       updateRoadVisibility(roadsLoader, camera, ROAD_VISIBILITY);
-
       ground.followCamera(camera);
-
       renderer.render(scene, camera);
       frameRef.current = requestAnimationFrame(loop);
     };
@@ -360,6 +342,7 @@ export default function ThreeScene({ settings = {} }) {
 
       weatherLabelManagerRef.current?.clear();
       loadersRef.current.forEach((l) => l.clearAll?.());
+      weatherLoadersRef.current.forEach((l) => l.clearAll?.());
       lighting.dispose();
       renderer.dispose();
       container.removeChild(renderer.domElement);
@@ -400,33 +383,27 @@ export default function ThreeScene({ settings = {} }) {
 
   useEffect(() => {
     const manager = weatherLabelManagerRef.current;
-    const weatherLoader = loadersRef.current.get("weather");
     const controls = controlsRef.current;
 
-    if (!manager || !weatherLoader) return;
+    if (!manager) return;
 
-    const enabledTemperature = settings.temperature;
-    const enabledHumidity = settings.humidity;
+    let anyEnabled = false;
 
-    if (!enabledTemperature && !enabledHumidity) {
-      weatherLoader.clearAll();
-      manager.clear();
-      return;
+    for (const { id } of WEATHER_LAYER_DEFS) {
+      const loader = weatherLoadersRef.current.get(id);
+      if (!loader) continue;
+
+      if (settings[id]) {
+        anyEnabled = true;
+      } else {
+        loader.clearAll();
+        manager.clear(id);
+      }
     }
 
-    if (enabledTemperature) {
-      weatherLoader.setMode("temperature");
-    } else {
-      manager.clear("temperature");
+    if (anyEnabled) {
+      controls?.dispatchEvent({ type: "change" });
     }
-
-    if (enabledHumidity) {
-      weatherLoader.setMode("humidity");
-    } else {
-      manager.clear("humidity");
-    }
-
-    controls?.dispatchEvent({ type: "change" });
   }, [settings.temperature, settings.humidity]);
 
   return (

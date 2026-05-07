@@ -1,13 +1,8 @@
 "use client";
 
-import { LegendItem, LegendMode } from "./types";
+import { LegendItem, MapLegendProps } from "./types";
 import { tempToColor, humidityToColor } from "../../../constants/temperaturecolors";
 import { cn } from "@/components/three/scene/utils";
-
-interface MapLegendProps {
-  mode: LegendMode;
-  className?: string;
-}
 
 function buildTemperatureLegend(): LegendItem[] {
   const points = [-30, -10, 0, 10, 20, 30, 40];

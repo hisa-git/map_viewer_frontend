@@ -6,7 +6,6 @@ import { _lineToMesh, ensureClosed, coordsToShape } from "./GeometryRenderers";
 import {
   buildingMaterial,
   riverMaterial,
-  defaultRoadMaterial,
 } from "../objects/Materials";
 
 const WGS84 = "EPSG:4326";
@@ -268,13 +267,4 @@ export class ChunkLoader {
   clearAll() {
     for (const key of this.meshGroups.keys()) this.removeChunk(key);
   }
-}
-
-export function createProjectionHelpers(centerOffset) {
-  return {
-    toLocal(lon, lat) {
-      const [x0, z0] = proj4(WGS84, WEB_MERCATOR, [lon, lat]);
-      return [x0 - centerOffset[0], z0 - centerOffset[1]];
-    },
-  };
 }

@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "src/components/scene/ThreeScene.jsx", "src/components/three/Building.js", "src/components/three/Plane.js", "src/components/three/hooks/useCamera.js", "src/components/three/hooks/useThreeRenderer.js"  ],
+, "src/components/scene/ThreeScene.jsx", "src/components/three/Building.js", "src/components/three/Plane.js", "src/components/three/hooks/useCamera.js", "src/components/three/hooks/useThreeRenderer.js", "src/components/three/render/WeatherLayers.ts", "src/constants/constants.js"  ],
   "exclude": ["node_modules"]
 }

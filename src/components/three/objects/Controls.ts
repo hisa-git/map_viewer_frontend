@@ -1,7 +1,7 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as THREE from "three";
 
-export function createControls(camera, domElement) {
+export function createControls(camera: THREE.PerspectiveCamera, domElement: HTMLCanvasElement) {
   const controls = new OrbitControls(camera, domElement);
 
   controls.enablePan = true;
@@ -21,7 +21,7 @@ export function createControls(camera, domElement) {
   controls.minPolarAngle = 0.1;
   controls.maxPolarAngle = Math.PI / 2;
 
-  controls.addEventListener("wheel", (event) => {
+  controls.addEventListener("wheel", (event: any) => {
     const delta = event.deltaY * 0.01;
     camera.position.addScaledVector(
       camera.getWorldDirection(new THREE.Vector3()),

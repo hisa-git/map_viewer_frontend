@@ -1,39 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "../lucid/card";
 import { Button } from "../lucid/button";
-import { Slider } from "../lucid/slider";
 import { Switch } from "../lucid/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../lucid/tabs";
 import { ScrollArea } from "../lucid/scroll-area";
 import { ACCENT_COLORS } from "../../../constants/uicolors";
 import { MapLegend } from "../map/MapLegend";
+import { ConsoleLog, MapSettings } from "./types";
 
-import {
-  Settings,
-  Info,
-  X,
-  Terminal,
-  Palette,
-  RefreshCw,
-  Download,
-} from "lucide-react";
+import { Settings, Info, X, Terminal, Palette, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThreeScene from "../../three/scene/ThreeScene";
-
-interface MapSettings {
-  buildings: boolean;
-  temperature: boolean;
-  humidity: boolean;
-  nightMode: boolean;
-}
-
-interface ConsoleLog {
-  id: number;
-  timestamp: string;
-  message: string;
-}
 
 function ConsolePanel({ logs }: { logs: ConsoleLog[] }) {
   return (
@@ -58,6 +36,7 @@ export default function MapInterface() {
   const [settings, setSettings] = useState<MapSettings>({
     buildings: true,
     humidity: false,
+    pressure: false,
     temperature: false,
     nightMode: false,
   });
@@ -104,6 +83,7 @@ export default function MapInterface() {
     setSettings({
       buildings: true,
       humidity: false,
+      pressure: false,
       temperature: false,
       nightMode: false,
     });
@@ -180,6 +160,11 @@ export default function MapInterface() {
                       "Вологість",
                       "Метеорологічні дані OpenMeteoAPI",
                     ],
+                    [
+                      "pressure",
+                      "Атмосферний тиск",
+                      "Метеорологічні дані OpenMeteoAPI",
+                    ],
 
                     ["nightMode", "Нічний режим", "Темна схема"],
                   ] as const
@@ -212,7 +197,6 @@ export default function MapInterface() {
                 ))}
               </div>
 
-              {/* Дії */}
               <div className="pt-4 border-t border-neutral-800 space-y-2">
                 <Button
                   variant="outline"
